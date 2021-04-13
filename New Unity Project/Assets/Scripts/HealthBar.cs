@@ -13,8 +13,6 @@ public class HealthBar : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log(mult);
-        Debug.Log("aaa");
         mText = mult.GetComponent<TextMeshPro>();
         
         bar = transform.Find("Bar");

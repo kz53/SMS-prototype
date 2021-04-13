@@ -3,10 +3,10 @@
 //voting system
     // button for all players
     // master client controller
-    //button to reload floor scene
 //stock tracker and display
 
 // price models
+// w
 
 using Photon.Pun;
 using System.Collections;
@@ -18,25 +18,44 @@ using UnityEngine.SceneManagement;
 
 public class GameSetupController : MonoBehaviour
 {
-    private float funds;
+    private float funds = 20000f;
     private float max_bar = 10000f;
     public HealthBar healthBar;
+    // private HealthBar
     public Tuple<string, float>[] priceTuples;
     public PriceController priceController;
     private TermSetActive[] termObjectArr;
     Dictionary<string, float> priceDict; 
-    Dictionary<string, int> shareDict; 
+    Dictionary<string, int> shareDict = 
+                    new Dictionary<string, int>(); 
+    Dictionary<string, HealthBar> stockBarDict = 
+                    new Dictionary<string, HealthBar>(); 
     public bool roundFinished = false;
     public GameObject finishRoundButton;
 
     public PlayerStatistics localPlayerData = new PlayerStatistics();
+    
+
+    public HealthBar stockBar0;
+    public HealthBar stockBar1;
+    public HealthBar stockBar2;
+    public HealthBar stockBar3;
+    public HealthBar stockBar4;
+    public HealthBar stockBar5;
+    public HealthBar stockBar6;
+    public HealthBar stockBar7;
+    public HealthBar stockBar8; 
+    public HealthBar stockBar9;
 
     void Start()
     {
 
         CreatePlayer();
         LoadPlayer();
+        InitializeShareDict();
         funds = localPlayerData.funds;
+        shareDict = localPlayerData.shares;
+        InitializeStockBarDict();
         healthBar.SetSize(funds / max_bar);
         termObjectArr = FindObjectsOfType<TermSetActive>();
 
@@ -63,15 +82,6 @@ public class GameSetupController : MonoBehaviour
 
     public void Buy(string symbol)
     {
-        // if ()
-        // { 
-
-        // }
-        // if (priceDict != null){
-        //     foreach(KeyValuePair<string,float> element in priceDict)
-        //     {
-        //     }
-        // }
 
         float price = priceDict[symbol]; 
         if (funds-price >= 0)
@@ -79,8 +89,11 @@ public class GameSetupController : MonoBehaviour
             funds -= price;
             float ratio = (funds / max_bar);
             healthBar.SetSize(ratio);
+            shareDict[symbol] = shareDict[symbol] + 1;
+            stockBarDict[symbol].SetSize(shareDict[symbol]/10f);
             priceController.PlaceOrder("BUY", symbol);
-            // GetPrice(symbol);
+            Debug.Log(shareDict[symbol]);
+            //decrease stock by 1
         } 
     }
 
@@ -90,11 +103,13 @@ public class GameSetupController : MonoBehaviour
         // float ratio = (funds / max_bar);
         // healthBar.SetSize(ratio);
         float price = priceDict[symbol]; 
-        if (funds-price >= 0)
+        if (shareDict[symbol] > 0)
         {
             funds += price;
             float ratio = (funds / max_bar);
             healthBar.SetSize(ratio);
+            shareDict[symbol] = shareDict[symbol] - 1;
+            stockBarDict[symbol].SetSize(shareDict[symbol]/10f);
             priceController.PlaceOrder("SELL", symbol);
             // GetPrice(symbol);
         } 
@@ -142,12 +157,39 @@ public class GameSetupController : MonoBehaviour
     public void SavePlayer()
     {
         localPlayerData.funds = funds;
+        localPlayerData.shares = shareDict;
+        // localPlayerData.shareDict = 
         GlobalControl.Instance.savedPlayerData = localPlayerData;
         priceController.SaveData();
+        Debug.Log(shareDict["AAPL"]);
+        Debug.Log(GlobalControl.Instance.savedPlayerData.shares["AAPL"]);
     }
 
     void LoadPlayer () 
     {   
         localPlayerData = GlobalControl.Instance.savedPlayerData;
+    }
+
+    void InitializeShareDict()
+    {
+        
+    }
+
+    void InitializeStockBarDict()
+    {
+        stockBarDict.Add("AAPL", stockBar0);
+        stockBarDict.Add("AMZN", stockBar1);
+        stockBarDict.Add("BA", stockBar2);
+        stockBarDict.Add("FB", stockBar3);
+        stockBarDict.Add("GME", stockBar4);
+        stockBarDict.Add("GOOG", stockBar5);
+        stockBarDict.Add("MSFT", stockBar6);
+        stockBarDict.Add("SHOP", stockBar7);
+        stockBarDict.Add("TSLA", stockBar8);
+        stockBarDict.Add("U", stockBar9);
+        foreach(KeyValuePair<string, HealthBar> entry in stockBarDict) 
+        {
+            entry.Value.SetSize(shareDict[entry.Key]/10f);
+        }
     }
 }

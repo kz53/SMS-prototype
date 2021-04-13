@@ -8,7 +8,6 @@ public class Move : MonoBehaviour
 
 	public float speed = 0.25f;
     private PhotonView myPV;
-	public int funds = 1000000;
     public GameSetupController gameSetup;
     // public HealthBar healthBar; 
     

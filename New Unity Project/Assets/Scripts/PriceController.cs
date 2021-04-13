@@ -10,14 +10,18 @@ public class PriceController : MonoBehaviour
 	private PhotonView myPV;
 	public Dictionary<string, float> priceDict = 
                     new Dictionary<string, float>();
+    public Dictionary<int, float> playerFundsDict = 
+                    new Dictionary<int, float>();
+    public Dictionary<string, float> playerSharesDict = 
+                    new Dictionary<string, float>();
 	float player1Funds = 100000f;
 
     void Start()
     {
         Debug.Log("trauiry"+PhotonNetwork.LocalPlayer.UserId);
 
-	    if (GlobalControl.Instance.priceDict == null)
-		{	
+        if (GlobalControl.Instance.priceDict == null)
+        {
 			priceDict.Add("AAPL", 100f);
 			priceDict.Add("AMZN", 100f);
 			priceDict.Add("BA", 100f);
@@ -39,34 +43,58 @@ public class PriceController : MonoBehaviour
 
     }
 
+    void InitPlayer(int playerID)
+    {
+        playerFundsDict.Add(playerID, 30000f);
+
+        // playerSharesDict.Add(playerID, emptyShares);
+    }
+
     public void PlaceOrder(string orderType, string symbol, string playerID="player1")
     {
-    	if (orderType == "BUY" && CanBuy("player", symbol))
-    	{
-    		player1Funds -= GetPrice(symbol);
-    		float newPrice = CalculateNewPrice(symbol);
-    		SetPrice(symbol, newPrice);
-    		myPV.RPC("VVV", RpcTarget.All); 
-    		myPV.RPC("SetPrice", RpcTarget.All, symbol, newPrice);
-    		return;
-    	} 
-    	if (orderType == "SELL" && CanSell("player", symbol))
-    	{
-    		player1Funds -= GetPrice(symbol);
-    		float newPrice = CalculateNewPrice(symbol);
-    		// SetPrice(symbol, newPrice);
-    		myPV.RPC("SetPrice", RpcTarget.All, symbol, newPrice);
-    		return;
-    	} 
+    	// if (orderType == "BUY" && CanBuy("player", symbol))
+    	// {
+    	// 	player1Funds -= GetPrice(symbol);
+    	// 	float newPrice = CalculateNewPrice(symbol);
+    	// 	SetPrice(symbol, newPrice);
+    	// 	myPV.RPC("SetPrice", RpcTarget.Master, symbol, newPrice);
+    	// 	return;
+    	// } 
+    	// if (orderType == "SELL" && CanSell("player", symbol))
+    	// {
+    	// 	player1Funds -= GetPrice(symbol);
+    	// 	float newPrice = CalculateNewPrice(symbol);
+    	// 	// SetPrice(symbol, newPrice);
+    	// 	myPV.RPC("SetPrice", RpcTarget.Master, symbol, newPrice); 
+    	// 	return;
+    	// } 
+        myPV.RPC("HandleOrder", RpcTarget.MasterClient, orderType, symbol, playerID); 
+    }
+
+    [PunRPC]
+    public void HandleOrder(string orderType, string symbol, string playerID="player1")
+    {
+        if (orderType == "BUY" && CanBuy("player", symbol))
+        {
+            player1Funds -= GetPrice(symbol);
+            float newPrice = CalculateNewPrice(symbol);
+            SetPrice(symbol, newPrice);
+            myPV.RPC("SetPrice", RpcTarget.All, symbol, newPrice);
+            return;
+        } 
+        if (orderType == "SELL" && CanSell("player", symbol))
+        {
+            player1Funds -= GetPrice(symbol);
+            float newPrice = CalculateNewPrice(symbol);
+            // SetPrice(symbol, newPrice);
+            myPV.RPC("SetPrice", RpcTarget.All, symbol, newPrice);
+            return;
+        } 
     }
 
     float GetPrice(string symbol)
     {
     	return priceDict[symbol];
-    }
-
-    [PunRPC]
-    public void VVV(){
     }
 
     [PunRPC]
